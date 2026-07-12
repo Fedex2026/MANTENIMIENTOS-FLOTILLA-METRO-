@@ -1,8 +1,63 @@
-const STORAGE_KEY = "mantenimientoFlotilla";
+import {
+  initializeApp
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
 
-let servicios = obtenerServicios();
+import {
+  getDatabase,
+  ref,
+  push,
+  set,
+  update,
+  remove,
+  onValue
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
+
+/* ======================================================
+   CONFIGURACIÓN REAL DE FIREBASE
+====================================================== */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB_TGANBa25toDvj8LXLtQLq3_-YCsbQ0A",
+
+  authDomain:
+    "mantenimiento--de-flotilla.firebaseapp.com",
+
+  databaseURL:
+    "https://mantenimiento--de-flotilla-default-rtdb.firebaseio.com",
+
+  projectId:
+    "mantenimiento--de-flotilla",
+
+  storageBucket:
+    "mantenimiento--de-flotilla.firebasestorage.app",
+
+  messagingSenderId:
+    "348935340353",
+
+  appId:
+    "1:348935340353:web:92eb3021548ec9ec9321c0"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const database = getDatabase(firebaseApp);
+
+const serviciosReferencia = ref(
+  database,
+  "mantenimientos"
+);
+
+/* ======================================================
+   VARIABLES GENERALES
+====================================================== */
+
+let servicios = [];
 let servicioSeleccionadoId = null;
 let filtroGarantiasActual = "todas";
+let guardandoServicio = false;
+
+/* ======================================================
+   ELEMENTOS DEL HTML
+====================================================== */
 
 const menuItems = document.querySelectorAll(".menu-item");
 const secciones = document.querySelectorAll(".page-section");
@@ -19,40 +74,88 @@ const refacciones = document.getElementById("refacciones");
 const refaccionaria = document.getElementById("refaccionaria");
 const garantia = document.getElementById("garantia");
 
-const seccionGarantia = document.getElementById("seccionGarantia");
+const seccionGarantia = document.getElementById(
+  "seccionGarantia"
+);
+
 const fechaInicioGarantia = document.getElementById(
   "fechaInicioGarantia"
 );
-const tiempoGarantia = document.getElementById("tiempoGarantia");
-const unidadGarantia = document.getElementById("unidadGarantia");
+
+const tiempoGarantia = document.getElementById(
+  "tiempoGarantia"
+);
+
+const unidadGarantia = document.getElementById(
+  "unidadGarantia"
+);
+
 const fechaFinGarantia = document.getElementById(
   "fechaFinGarantia"
 );
 
-const tablaRecientes = document.getElementById("tablaRecientes");
-const tablaHistorial = document.getElementById("tablaHistorial");
-const listaGarantias = document.getElementById("listaGarantias");
+const tablaRecientes = document.getElementById(
+  "tablaRecientes"
+);
 
-const sinRecientes = document.getElementById("sinRecientes");
-const sinHistorial = document.getElementById("sinHistorial");
-const sinGarantias = document.getElementById("sinGarantias");
+const tablaHistorial = document.getElementById(
+  "tablaHistorial"
+);
+
+const listaGarantias = document.getElementById(
+  "listaGarantias"
+);
+
+const sinRecientes = document.getElementById(
+  "sinRecientes"
+);
+
+const sinHistorial = document.getElementById(
+  "sinHistorial"
+);
+
+const sinGarantias = document.getElementById(
+  "sinGarantias"
+);
 
 const buscador = document.getElementById("buscador");
-const filtroEstado = document.getElementById("filtroEstado");
-const filtroGarantia = document.getElementById("filtroGarantia");
 
-const modalDetalle = document.getElementById("modalDetalle");
+const filtroEstado = document.getElementById(
+  "filtroEstado"
+);
+
+const filtroGarantia = document.getElementById(
+  "filtroGarantia"
+);
+
+const modalDetalle = document.getElementById(
+  "modalDetalle"
+);
+
 const detalleEconomico = document.getElementById(
   "detalleEconomico"
 );
+
 const contenidoDetalle = document.getElementById(
   "contenidoDetalle"
 );
 
+const btnGuardar = document.getElementById(
+  "btnGuardar"
+);
+
+/* ======================================================
+   INICIAR SISTEMA
+====================================================== */
+
 document.addEventListener("DOMContentLoaded", () => {
   colocarFechaActual();
-  actualizarTodo();
+  escucharServiciosFirebase();
 });
+
+/* ======================================================
+   EVENTOS DEL MENÚ
+====================================================== */
 
 menuItems.forEach((item) => {
   item.addEventListener("click", () => {
@@ -67,7 +170,10 @@ document
 document
   .querySelectorAll(".btn-abrir-nuevo")
   .forEach((boton) => {
-    boton.addEventListener("click", prepararNuevoServicio);
+    boton.addEventListener(
+      "click",
+      prepararNuevoServicio
+    );
   });
 
 document
@@ -83,7 +189,10 @@ document
     abrirSeccion("inicio");
   });
 
-garantia.addEventListener("change", mostrarCamposGarantia);
+garantia.addEventListener(
+  "change",
+  mostrarCamposGarantia
+);
 
 fechaInicioGarantia.addEventListener(
   "change",
@@ -100,11 +209,25 @@ unidadGarantia.addEventListener(
   calcularVencimientoGarantia
 );
 
-formServicio.addEventListener("submit", guardarServicio);
+formServicio.addEventListener(
+  "submit",
+  guardarServicio
+);
 
-buscador.addEventListener("input", renderizarHistorial);
-filtroEstado.addEventListener("change", renderizarHistorial);
-filtroGarantia.addEventListener("change", renderizarHistorial);
+buscador.addEventListener(
+  "input",
+  renderizarHistorial
+);
+
+filtroEstado.addEventListener(
+  "change",
+  renderizarHistorial
+);
+
+filtroGarantia.addEventListener(
+  "change",
+  renderizarHistorial
+);
 
 document
   .querySelectorAll(".warranty-filter")
@@ -117,7 +240,9 @@ document
         });
 
       boton.classList.add("active");
-      filtroGarantiasActual = boton.dataset.warrantyFilter;
+
+      filtroGarantiasActual =
+        boton.dataset.warrantyFilter;
 
       renderizarGarantias();
     });
@@ -134,34 +259,83 @@ document
 document
   .getElementById("btnEditarDetalle")
   .addEventListener("click", () => {
-    if (!servicioSeleccionadoId) return;
+    if (!servicioSeleccionadoId) {
+      return;
+    }
+
+    const id = servicioSeleccionadoId;
 
     cerrarModal();
-    editarServicio(servicioSeleccionadoId);
+    editarServicio(id);
   });
 
 document
   .getElementById("btnEliminarDetalle")
   .addEventListener("click", () => {
-    if (!servicioSeleccionadoId) return;
+    if (!servicioSeleccionadoId) {
+      return;
+    }
 
     eliminarServicio(servicioSeleccionadoId);
   });
 
-function obtenerServicios() {
-  try {
-    const datos = localStorage.getItem(STORAGE_KEY);
+/* ======================================================
+   ESCUCHAR FIREBASE EN TIEMPO REAL
+====================================================== */
 
-    return datos ? JSON.parse(datos) : [];
-  } catch (error) {
-    console.error("No se pudieron cargar los registros:", error);
-    return [];
-  }
+function escucharServiciosFirebase() {
+  onValue(
+    serviciosReferencia,
+
+    (snapshot) => {
+      const datos = snapshot.val();
+
+      if (!datos) {
+        servicios = [];
+        actualizarTodo();
+        return;
+      }
+
+      servicios = Object.entries(datos).map(
+        ([id, registro]) => ({
+          id,
+          ...registro
+        })
+      );
+
+      servicios.sort((a, b) => {
+        const fechaA = new Date(
+          a.fechaRegistro || 0
+        );
+
+        const fechaB = new Date(
+          b.fechaRegistro || 0
+        );
+
+        return fechaB - fechaA;
+      });
+
+      actualizarTodo();
+    },
+
+    (error) => {
+      console.error(
+        "Error al leer Firebase:",
+        error
+      );
+
+      mostrarNotificacion(
+        "Error de conexión",
+        "No se pudieron cargar los registros de Firebase.",
+        "error"
+      );
+    }
+  );
 }
 
-function guardarEnLocalStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(servicios));
-}
+/* ======================================================
+   NAVEGACIÓN
+====================================================== */
 
 function abrirSeccion(nombreSeccion) {
   secciones.forEach((seccion) => {
@@ -172,16 +346,18 @@ function abrirSeccion(nombreSeccion) {
     item.classList.remove("active");
   });
 
-  const seccionSeleccionada = document.getElementById(
-    nombreSeccion
-  );
+  const seccionSeleccionada =
+    document.getElementById(nombreSeccion);
 
-  const menuSeleccionado = document.querySelector(
-    `[data-section="${nombreSeccion}"]`
-  );
+  const menuSeleccionado =
+    document.querySelector(
+      `[data-section="${nombreSeccion}"]`
+    );
 
   if (seccionSeleccionada) {
-    seccionSeleccionada.classList.add("active-section");
+    seccionSeleccionada.classList.add(
+      "active-section"
+    );
   }
 
   if (menuSeleccionado) {
@@ -204,14 +380,19 @@ function abrirSeccion(nombreSeccion) {
 
 function prepararNuevoServicio() {
   limpiarFormulario();
+
+  document.getElementById(
+    "tituloFormulario"
+  ).textContent = "Registrar servicio";
+
+  btnGuardar.textContent = "Guardar servicio";
+
   abrirSeccion("nuevo");
-
-  document.getElementById("tituloFormulario").textContent =
-    "Registrar servicio";
-
-  document.getElementById("btnGuardar").textContent =
-    "Guardar servicio";
 }
+
+/* ======================================================
+   FECHAS Y GARANTÍA
+====================================================== */
 
 function colocarFechaActual() {
   if (!fechaEntrada.value) {
@@ -221,25 +402,37 @@ function colocarFechaActual() {
 
 function obtenerFechaLocal() {
   const fecha = new Date();
-  const desplazamiento = fecha.getTimezoneOffset() * 60000;
 
-  return new Date(fecha.getTime() - desplazamiento)
+  const desplazamiento =
+    fecha.getTimezoneOffset() * 60000;
+
+  return new Date(
+    fecha.getTime() - desplazamiento
+  )
     .toISOString()
     .split("T")[0];
 }
 
 function mostrarCamposGarantia() {
-  const tieneGarantia = garantia.value === "Sí";
+  const tieneGarantia =
+    garantia.value === "Sí";
 
-  seccionGarantia.classList.toggle("hidden", !tieneGarantia);
+  seccionGarantia.classList.toggle(
+    "hidden",
+    !tieneGarantia
+  );
 
   fechaInicioGarantia.required = tieneGarantia;
   tiempoGarantia.required = tieneGarantia;
   fechaFinGarantia.required = tieneGarantia;
 
-  if (tieneGarantia && !fechaInicioGarantia.value) {
+  if (
+    tieneGarantia &&
+    !fechaInicioGarantia.value
+  ) {
     fechaInicioGarantia.value =
-      fechaEntrada.value || obtenerFechaLocal();
+      fechaEntrada.value ||
+      obtenerFechaLocal();
   }
 
   if (!tieneGarantia) {
@@ -250,11 +443,20 @@ function mostrarCamposGarantia() {
 }
 
 function calcularVencimientoGarantia() {
-  const fechaInicio = fechaInicioGarantia.value;
-  const cantidad = Number(tiempoGarantia.value);
+  const fechaInicio =
+    fechaInicioGarantia.value;
+
+  const cantidad = Number(
+    tiempoGarantia.value
+  );
+
   const unidad = unidadGarantia.value;
 
-  if (!fechaInicio || !cantidad || cantidad <= 0) {
+  if (
+    !fechaInicio ||
+    !cantidad ||
+    cantidad <= 0
+  ) {
     fechaFinGarantia.value = "";
     return;
   }
@@ -262,22 +464,37 @@ function calcularVencimientoGarantia() {
   const fecha = crearFecha(fechaInicio);
 
   if (unidad === "días") {
-    fecha.setDate(fecha.getDate() + cantidad);
+    fecha.setDate(
+      fecha.getDate() + cantidad
+    );
   }
 
   if (unidad === "meses") {
-    fecha.setMonth(fecha.getMonth() + cantidad);
+    fecha.setMonth(
+      fecha.getMonth() + cantidad
+    );
   }
 
   if (unidad === "años") {
-    fecha.setFullYear(fecha.getFullYear() + cantidad);
+    fecha.setFullYear(
+      fecha.getFullYear() + cantidad
+    );
   }
 
-  fechaFinGarantia.value = convertirFechaInput(fecha);
+  fechaFinGarantia.value =
+    convertirFechaInput(fecha);
 }
 
-function guardarServicio(evento) {
+/* ======================================================
+   GUARDAR EN FIREBASE
+====================================================== */
+
+async function guardarServicio(evento) {
   evento.preventDefault();
+
+  if (guardandoServicio) {
+    return;
+  }
 
   if (!formServicio.checkValidity()) {
     formServicio.reportValidity();
@@ -297,69 +514,127 @@ function guardarServicio(evento) {
     return;
   }
 
+  guardandoServicio = true;
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = "Guardando...";
+
+  const idExistente = servicioId.value;
+
   const registro = {
-    id: servicioId.value || generarId(),
     marca: marca.value.trim(),
-    economico: economico.value.trim().toUpperCase(),
-    fechaEntrada: fechaEntrada.value,
-    estado: estado.value,
-    falla: falla.value.trim(),
-    refacciones: refacciones.value.trim(),
-    refaccionaria: refaccionaria.value.trim(),
-    garantia: garantia.value,
+
+    economico:
+      economico.value.trim().toUpperCase(),
+
+    fechaEntrada:
+      fechaEntrada.value,
+
+    estado:
+      estado.value,
+
+    falla:
+      falla.value.trim(),
+
+    refacciones:
+      refacciones.value.trim(),
+
+    refaccionaria:
+      refaccionaria.value.trim(),
+
+    garantia:
+      garantia.value,
+
     fechaInicioGarantia:
       garantia.value === "Sí"
         ? fechaInicioGarantia.value
         : "",
+
     tiempoGarantia:
       garantia.value === "Sí"
         ? Number(tiempoGarantia.value)
         : 0,
+
     unidadGarantia:
       garantia.value === "Sí"
         ? unidadGarantia.value
         : "",
+
     fechaFinGarantia:
       garantia.value === "Sí"
         ? fechaFinGarantia.value
         : "",
-    fechaRegistro: new Date().toISOString()
+
+    fechaActualizacion:
+      new Date().toISOString()
   };
 
-  const indiceExistente = servicios.findIndex(
-    (servicio) => servicio.id === registro.id
-  );
+  try {
+    if (idExistente) {
+      const servicioAnterior =
+        servicios.find(
+          (servicio) =>
+            servicio.id === idExistente
+        );
 
-  if (indiceExistente >= 0) {
-    registro.fechaRegistro =
-      servicios[indiceExistente].fechaRegistro;
+      registro.fechaRegistro =
+        servicioAnterior?.fechaRegistro ||
+        new Date().toISOString();
 
-    servicios[indiceExistente] = registro;
+      await update(
+        ref(
+          database,
+          `mantenimientos/${idExistente}`
+        ),
+        registro
+      );
+
+      mostrarNotificacion(
+        "Servicio actualizado",
+        "Los cambios se guardaron en Firebase."
+      );
+    } else {
+      registro.fechaRegistro =
+        new Date().toISOString();
+
+      const nuevaReferencia = push(
+        serviciosReferencia
+      );
+
+      await set(
+        nuevaReferencia,
+        registro
+      );
+
+      mostrarNotificacion(
+        "Servicio registrado",
+        "El mantenimiento se guardó en la nube."
+      );
+    }
+
+    limpiarFormulario();
+    abrirSeccion("historial");
+  } catch (error) {
+    console.error(
+      "Error al guardar en Firebase:",
+      error
+    );
 
     mostrarNotificacion(
-      "Servicio actualizado",
-      "Los cambios se guardaron correctamente."
+      "No se pudo guardar",
+      "Revisa la conexión y las reglas de Firebase.",
+      "error"
     );
-  } else {
-    servicios.unshift(registro);
-
-    mostrarNotificacion(
-      "Servicio registrado",
-      "El mantenimiento se guardó correctamente."
-    );
+  } finally {
+    guardandoServicio = false;
+    btnGuardar.disabled = false;
+    btnGuardar.textContent =
+      "Guardar servicio";
   }
-
-  guardarEnLocalStorage();
-  actualizarTodo();
-  limpiarFormulario();
-  abrirSeccion("historial");
 }
 
-function generarId() {
-  return `SRV-${Date.now()}-${Math.floor(
-    Math.random() * 1000
-  )}`;
-}
+/* ======================================================
+   ACTUALIZAR PANTALLAS
+====================================================== */
 
 function actualizarTodo() {
   actualizarResumen();
@@ -371,80 +646,131 @@ function actualizarTodo() {
 function actualizarResumen() {
   const hoy = inicioDelDia(new Date());
 
-  const serviciosEnReparacion = servicios.filter(
-    (servicio) => servicio.estado === "En reparación"
-  );
+  const serviciosEnReparacion =
+    servicios.filter(
+      (servicio) =>
+        servicio.estado === "En reparación"
+    );
 
-  const serviciosConGarantia = servicios.filter(
-    (servicio) => servicio.garantia === "Sí"
-  );
+  const serviciosConGarantia =
+    servicios.filter(
+      (servicio) =>
+        servicio.garantia === "Sí"
+    );
 
-  const vencidas = serviciosConGarantia.filter((servicio) => {
-    if (!servicio.fechaFinGarantia) return false;
+  const vencidas =
+    serviciosConGarantia.filter(
+      (servicio) => {
+        if (!servicio.fechaFinGarantia) {
+          return false;
+        }
 
-    return crearFecha(servicio.fechaFinGarantia) < hoy;
-  });
+        return (
+          crearFecha(
+            servicio.fechaFinGarantia
+          ) < hoy
+        );
+      }
+    );
 
-  document.getElementById("totalServicios").textContent =
-    servicios.length;
+  document.getElementById(
+    "totalServicios"
+  ).textContent = servicios.length;
 
-  document.getElementById("totalReparacion").textContent =
+  document.getElementById(
+    "totalReparacion"
+  ).textContent =
     serviciosEnReparacion.length;
 
-  document.getElementById("totalGarantias").textContent =
+  document.getElementById(
+    "totalGarantias"
+  ).textContent =
     serviciosConGarantia.length;
 
-  document.getElementById("garantiasVencidas").textContent =
-    vencidas.length;
+  document.getElementById(
+    "garantiasVencidas"
+  ).textContent = vencidas.length;
 }
+
+/* ======================================================
+   SERVICIOS RECIENTES
+====================================================== */
 
 function renderizarRecientes() {
   tablaRecientes.innerHTML = "";
 
   const recientes = [...servicios]
-    .sort(
-      (a, b) =>
-        new Date(b.fechaRegistro) -
-        new Date(a.fechaRegistro)
-    )
+    .sort((a, b) => {
+      return (
+        new Date(
+          b.fechaRegistro || 0
+        ) -
+        new Date(
+          a.fechaRegistro || 0
+        )
+      );
+    })
     .slice(0, 6);
 
   sinRecientes.style.display =
-    recientes.length === 0 ? "block" : "none";
+    recientes.length === 0
+      ? "block"
+      : "none";
 
-  if (recientes.length === 0) return;
+  if (recientes.length === 0) {
+    return;
+  }
 
   recientes.forEach((servicio) => {
     const fila = document.createElement("tr");
 
     fila.innerHTML = `
-      <td>${formatearFecha(servicio.fechaEntrada)}</td>
+      <td>
+        ${formatearFecha(
+          servicio.fechaEntrada
+        )}
+      </td>
 
       <td>
         <button
           class="economic-link"
-          onclick="verDetalle('${servicio.id}')"
+          data-action="ver"
+          data-id="${servicio.id}"
         >
-          ${escaparHTML(servicio.economico)}
+          ${escaparHTML(
+            servicio.economico
+          )}
         </button>
       </td>
 
-      <td>${escaparHTML(servicio.marca)}</td>
+      <td>
+        ${escaparHTML(
+          servicio.marca
+        )}
+      </td>
 
       <td class="cell-ellipsis">
-        ${escaparHTML(servicio.falla)}
+        ${escaparHTML(
+          servicio.falla
+        )}
       </td>
 
       <td>
-        ${escaparHTML(servicio.refaccionaria)}
+        ${escaparHTML(
+          servicio.refaccionaria
+        )}
       </td>
 
       <td>
-        ${crearBadgeGarantia(servicio)}
+        ${crearBadgeGarantia(
+          servicio
+        )}
       </td>
 
       <td>
-        ${crearBadgeEstado(servicio.estado)}
+        ${crearBadgeEstado(
+          servicio.estado
+        )}
       </td>
     `;
 
@@ -452,89 +778,128 @@ function renderizarRecientes() {
   });
 }
 
+/* ======================================================
+   HISTORIAL
+====================================================== */
+
 function renderizarHistorial() {
   tablaHistorial.innerHTML = "";
 
-  const textoBusqueda = buscador.value
-    .trim()
-    .toLowerCase();
-
-  const estadoSeleccionado = filtroEstado.value;
-  const garantiaSeleccionada = filtroGarantia.value;
-
-  const resultados = servicios.filter((servicio) => {
-    const textoCompleto = [
-      servicio.economico,
-      servicio.marca,
-      servicio.falla,
-      servicio.refacciones,
-      servicio.refaccionaria
-    ]
-      .join(" ")
+  const textoBusqueda =
+    buscador.value
+      .trim()
       .toLowerCase();
 
-    const coincideBusqueda =
-      !textoBusqueda ||
-      textoCompleto.includes(textoBusqueda);
+  const estadoSeleccionado =
+    filtroEstado.value;
 
-    const coincideEstado =
-      !estadoSeleccionado ||
-      servicio.estado === estadoSeleccionado;
+  const garantiaSeleccionada =
+    filtroGarantia.value;
 
-    const coincideGarantia =
-      !garantiaSeleccionada ||
-      servicio.garantia === garantiaSeleccionada;
+  const resultados =
+    servicios.filter((servicio) => {
+      const textoCompleto = [
+        servicio.economico,
+        servicio.marca,
+        servicio.falla,
+        servicio.refacciones,
+        servicio.refaccionaria
+      ]
+        .join(" ")
+        .toLowerCase();
 
-    return (
-      coincideBusqueda &&
-      coincideEstado &&
-      coincideGarantia
-    );
-  });
+      const coincideBusqueda =
+        !textoBusqueda ||
+        textoCompleto.includes(
+          textoBusqueda
+        );
+
+      const coincideEstado =
+        !estadoSeleccionado ||
+        servicio.estado ===
+          estadoSeleccionado;
+
+      const coincideGarantia =
+        !garantiaSeleccionada ||
+        servicio.garantia ===
+          garantiaSeleccionada;
+
+      return (
+        coincideBusqueda &&
+        coincideEstado &&
+        coincideGarantia
+      );
+    });
 
   sinHistorial.style.display =
-    resultados.length === 0 ? "block" : "none";
+    resultados.length === 0
+      ? "block"
+      : "none";
 
-  if (resultados.length === 0) return;
+  if (resultados.length === 0) {
+    return;
+  }
 
   resultados.forEach((servicio) => {
     const fila = document.createElement("tr");
 
     fila.innerHTML = `
-      <td>${formatearFecha(servicio.fechaEntrada)}</td>
+      <td>
+        ${formatearFecha(
+          servicio.fechaEntrada
+        )}
+      </td>
 
       <td class="economic-number">
-        ${escaparHTML(servicio.economico)}
-      </td>
-
-      <td>${escaparHTML(servicio.marca)}</td>
-
-      <td class="cell-ellipsis">
-        ${escaparHTML(servicio.falla)}
-      </td>
-
-      <td class="cell-ellipsis">
-        ${escaparHTML(servicio.refacciones)}
+        ${escaparHTML(
+          servicio.economico
+        )}
       </td>
 
       <td>
-        ${escaparHTML(servicio.refaccionaria)}
+        ${escaparHTML(
+          servicio.marca
+        )}
+      </td>
+
+      <td class="cell-ellipsis">
+        ${escaparHTML(
+          servicio.falla
+        )}
+      </td>
+
+      <td class="cell-ellipsis">
+        ${escaparHTML(
+          servicio.refacciones
+        )}
       </td>
 
       <td>
-        ${crearBadgeGarantia(servicio)}
+        ${escaparHTML(
+          servicio.refaccionaria
+        )}
+      </td>
+
+      <td>
+        ${crearBadgeGarantia(
+          servicio
+        )}
       </td>
 
       <td>
         ${
           servicio.fechaFinGarantia
-            ? formatearFecha(servicio.fechaFinGarantia)
+            ? formatearFecha(
+                servicio.fechaFinGarantia
+              )
             : "—"
         }
       </td>
 
       <td>
-        ${crearBadgeEstado(servicio.estado)}
+        ${crearBadgeEstado(
+          servicio.estado
+        )}
       </td>
 
       <td>
@@ -543,7 +908,8 @@ function renderizarHistorial() {
           <button
             class="icon-button"
             title="Ver detalle"
-            onclick="verDetalle('${servicio.id}')"
+            data-action="ver"
+            data-id="${servicio.id}"
           >
             👁
           </button>
@@ -551,7 +917,8 @@ function renderizarHistorial() {
           <button
             class="icon-button"
             title="Editar"
-            onclick="editarServicio('${servicio.id}')"
+            data-action="editar"
+            data-id="${servicio.id}"
           >
             ✎
           </button>
@@ -559,7 +926,8 @@ function renderizarHistorial() {
           <button
             class="icon-button delete"
             title="Eliminar"
-            onclick="eliminarServicio('${servicio.id}')"
+            data-action="eliminar"
+            data-id="${servicio.id}"
           >
             🗑
           </button>
@@ -572,54 +940,88 @@ function renderizarHistorial() {
   });
 }
 
+/* ======================================================
+   GARANTÍAS
+====================================================== */
+
 function renderizarGarantias() {
   listaGarantias.innerHTML = "";
 
   let registros = servicios.filter(
-    (servicio) => servicio.garantia === "Sí"
+    (servicio) =>
+      servicio.garantia === "Sí"
   );
 
-  registros = registros.filter((servicio) => {
-    if (filtroGarantiasActual === "todas") return true;
+  registros = registros.filter(
+    (servicio) => {
+      if (
+        filtroGarantiasActual === "todas"
+      ) {
+        return true;
+      }
 
-    return (
-      obtenerEstadoGarantia(servicio) ===
-      filtroGarantiasActual
-    );
-  });
+      return (
+        obtenerEstadoGarantia(
+          servicio
+        ) === filtroGarantiasActual
+      );
+    }
+  );
 
   sinGarantias.style.display =
-    registros.length === 0 ? "block" : "none";
+    registros.length === 0
+      ? "block"
+      : "none";
 
-  if (registros.length === 0) return;
+  if (registros.length === 0) {
+    return;
+  }
 
   registros
-    .sort(
-      (a, b) =>
-        crearFecha(a.fechaFinGarantia) -
-        crearFecha(b.fechaFinGarantia)
-    )
+    .sort((a, b) => {
+      return (
+        crearFecha(
+          a.fechaFinGarantia
+        ) -
+        crearFecha(
+          b.fechaFinGarantia
+        )
+      );
+    })
     .forEach((servicio) => {
       const estadoGarantia =
         obtenerEstadoGarantia(servicio);
 
-      const tarjeta = document.createElement("article");
-      tarjeta.className = "warranty-card";
+      const tarjeta =
+        document.createElement("article");
+
+      tarjeta.className =
+        "warranty-card";
 
       tarjeta.innerHTML = `
         <div class="warranty-card-header">
 
           <div>
-            <h3>${escaparHTML(servicio.economico)}</h3>
+            <h3>
+              ${escaparHTML(
+                servicio.economico
+              )}
+            </h3>
 
             <p>
-              ${escaparHTML(servicio.marca)}
+              ${escaparHTML(
+                servicio.marca
+              )}
               ·
-              ${escaparHTML(servicio.refaccionaria)}
+              ${escaparHTML(
+                servicio.refaccionaria
+              )}
             </p>
           </div>
 
-          ${crearBadgeEstadoGarantia(estadoGarantia)}
+          ${crearBadgeEstadoGarantia(
+            estadoGarantia
+          )}
 
         </div>
 
@@ -627,21 +1029,28 @@ function renderizarGarantias() {
 
           <div>
             <span>Refacciones</span>
+
             <strong>
-              ${escaparHTML(servicio.refacciones)}
+              ${escaparHTML(
+                servicio.refacciones
+              )}
             </strong>
           </div>
 
           <div>
             <span>Tiempo</span>
+
             <strong>
               ${servicio.tiempoGarantia}
-              ${escaparHTML(servicio.unidadGarantia)}
+              ${escaparHTML(
+                servicio.unidadGarantia
+              )}
             </strong>
           </div>
 
           <div>
             <span>Inicio</span>
+
             <strong>
               ${formatearFecha(
                 servicio.fechaInicioGarantia
@@ -651,6 +1060,7 @@ function renderizarGarantias() {
 
           <div>
             <span>Vencimiento</span>
+
             <strong>
               ${formatearFecha(
                 servicio.fechaFinGarantia
@@ -664,7 +1074,8 @@ function renderizarGarantias() {
 
           <button
             class="secondary-button"
-            onclick="verDetalle('${servicio.id}')"
+            data-action="ver"
+            data-id="${servicio.id}"
           >
             Ver detalle
           </button>
@@ -676,59 +1087,142 @@ function renderizarGarantias() {
     });
 }
 
+/* ======================================================
+   BOTONES DINÁMICOS
+====================================================== */
+
+document.addEventListener("click", (evento) => {
+  const boton = evento.target.closest(
+    "[data-action]"
+  );
+
+  if (!boton) {
+    return;
+  }
+
+  const accion = boton.dataset.action;
+  const id = boton.dataset.id;
+
+  if (accion === "ver") {
+    verDetalle(id);
+  }
+
+  if (accion === "editar") {
+    editarServicio(id);
+  }
+
+  if (accion === "eliminar") {
+    eliminarServicio(id);
+  }
+});
+
+/* ======================================================
+   BADGES
+====================================================== */
+
 function crearBadgeEstado(estadoServicio) {
   if (estadoServicio === "Terminado") {
-    return `<span class="badge green">Terminado</span>`;
+    return `
+      <span class="badge green">
+        Terminado
+      </span>
+    `;
   }
 
   if (estadoServicio === "En reparación") {
-    return `<span class="badge orange">En reparación</span>`;
+    return `
+      <span class="badge orange">
+        En reparación
+      </span>
+    `;
   }
 
-  return `<span class="badge gray">Pendiente</span>`;
+  return `
+    <span class="badge gray">
+      Pendiente
+    </span>
+  `;
 }
 
 function crearBadgeGarantia(servicio) {
   if (servicio.garantia !== "Sí") {
-    return `<span class="badge gray">Sin garantía</span>`;
+    return `
+      <span class="badge gray">
+        Sin garantía
+      </span>
+    `;
   }
 
-  const estadoGarantia = obtenerEstadoGarantia(servicio);
+  const estadoGarantia =
+    obtenerEstadoGarantia(servicio);
 
   if (estadoGarantia === "vencida") {
-    return `<span class="badge red">Vencida</span>`;
+    return `
+      <span class="badge red">
+        Vencida
+      </span>
+    `;
   }
 
   if (estadoGarantia === "por-vencer") {
-    return `<span class="badge orange">Por vencer</span>`;
+    return `
+      <span class="badge orange">
+        Por vencer
+      </span>
+    `;
   }
 
-  return `<span class="badge green">Vigente</span>`;
+  return `
+    <span class="badge green">
+      Vigente
+    </span>
+  `;
 }
 
-function crearBadgeEstadoGarantia(estadoGarantia) {
+function crearBadgeEstadoGarantia(
+  estadoGarantia
+) {
   if (estadoGarantia === "vencida") {
-    return `<span class="badge red">Vencida</span>`;
+    return `
+      <span class="badge red">
+        Vencida
+      </span>
+    `;
   }
 
   if (estadoGarantia === "por-vencer") {
-    return `<span class="badge orange">Por vencer</span>`;
+    return `
+      <span class="badge orange">
+        Por vencer
+      </span>
+    `;
   }
 
-  return `<span class="badge green">Vigente</span>`;
+  return `
+    <span class="badge green">
+      Vigente
+    </span>
+  `;
 }
 
 function obtenerEstadoGarantia(servicio) {
-  if (!servicio.fechaFinGarantia) return "vencida";
+  if (!servicio.fechaFinGarantia) {
+    return "vencida";
+  }
 
   const hoy = inicioDelDia(new Date());
-  const vencimiento = crearFecha(servicio.fechaFinGarantia);
+
+  const vencimiento = crearFecha(
+    servicio.fechaFinGarantia
+  );
 
   const diferenciaMilisegundos =
-    vencimiento.getTime() - hoy.getTime();
+    vencimiento.getTime() -
+    hoy.getTime();
 
   const diasRestantes = Math.ceil(
-    diferenciaMilisegundos / (1000 * 60 * 60 * 24)
+    diferenciaMilisegundos /
+      (1000 * 60 * 60 * 24)
   );
 
   if (diasRestantes < 0) {
@@ -742,12 +1236,19 @@ function obtenerEstadoGarantia(servicio) {
   return "vigente";
 }
 
+/* ======================================================
+   DETALLE
+====================================================== */
+
 function verDetalle(id) {
   const servicio = servicios.find(
-    (elemento) => elemento.id === id
+    (elemento) =>
+      elemento.id === id
   );
 
-  if (!servicio) return;
+  if (!servicio) {
+    return;
+  }
 
   servicioSeleccionadoId = id;
 
@@ -760,7 +1261,9 @@ function verDetalle(id) {
       <span>Fecha de entrada</span>
 
       <strong>
-        ${formatearFecha(servicio.fechaEntrada)}
+        ${formatearFecha(
+          servicio.fechaEntrada
+        )}
       </strong>
 
     </div>
@@ -769,7 +1272,9 @@ function verDetalle(id) {
 
       <span>Estado</span>
 
-      ${crearBadgeEstado(servicio.estado)}
+      ${crearBadgeEstado(
+        servicio.estado
+      )}
 
     </div>
 
@@ -777,7 +1282,11 @@ function verDetalle(id) {
 
       <span>Falla presentada</span>
 
-      <p>${escaparHTML(servicio.falla)}</p>
+      <p>
+        ${escaparHTML(
+          servicio.falla
+        )}
+      </p>
 
     </div>
 
@@ -785,7 +1294,11 @@ function verDetalle(id) {
 
       <span>Refacciones utilizadas</span>
 
-      <p>${escaparHTML(servicio.refacciones)}</p>
+      <p>
+        ${escaparHTML(
+          servicio.refacciones
+        )}
+      </p>
 
     </div>
 
@@ -794,7 +1307,9 @@ function verDetalle(id) {
       <span>Refaccionaria</span>
 
       <strong>
-        ${escaparHTML(servicio.refaccionaria)}
+        ${escaparHTML(
+          servicio.refaccionaria
+        )}
       </strong>
 
     </div>
@@ -803,7 +1318,9 @@ function verDetalle(id) {
 
       <span>Garantía</span>
 
-      ${crearBadgeGarantia(servicio)}
+      ${crearBadgeGarantia(
+        servicio
+      )}
 
     </div>
 
@@ -812,7 +1329,9 @@ function verDetalle(id) {
         ? `
           <div class="detail-item">
 
-            <span>Inicio de garantía</span>
+            <span>
+              Inicio de garantía
+            </span>
 
             <strong>
               ${formatearFecha(
@@ -824,18 +1343,24 @@ function verDetalle(id) {
 
           <div class="detail-item">
 
-            <span>Tiempo de garantía</span>
+            <span>
+              Tiempo de garantía
+            </span>
 
             <strong>
               ${servicio.tiempoGarantia}
-              ${escaparHTML(servicio.unidadGarantia)}
+              ${escaparHTML(
+                servicio.unidadGarantia
+              )}
             </strong>
 
           </div>
 
           <div class="detail-item full-width">
 
-            <span>Vencimiento de garantía</span>
+            <span>
+              Vencimiento de garantía
+            </span>
 
             <strong>
               ${formatearFecha(
@@ -857,22 +1382,32 @@ function cerrarModal() {
   servicioSeleccionadoId = null;
 }
 
+/* ======================================================
+   EDITAR
+====================================================== */
+
 function editarServicio(id) {
   const servicio = servicios.find(
-    (elemento) => elemento.id === id
+    (elemento) =>
+      elemento.id === id
   );
 
-  if (!servicio) return;
+  if (!servicio) {
+    return;
+  }
 
   servicioId.value = servicio.id;
-  marca.value = servicio.marca;
-  economico.value = servicio.economico;
-  fechaEntrada.value = servicio.fechaEntrada;
-  estado.value = servicio.estado;
-  falla.value = servicio.falla;
-  refacciones.value = servicio.refacciones;
-  refaccionaria.value = servicio.refaccionaria;
-  garantia.value = servicio.garantia;
+  marca.value = servicio.marca || "";
+  economico.value = servicio.economico || "";
+  fechaEntrada.value = servicio.fechaEntrada || "";
+
+  estado.value =
+    servicio.estado || "En reparación";
+
+  falla.value = servicio.falla || "";
+  refacciones.value = servicio.refacciones || "";
+  refaccionaria.value = servicio.refaccionaria || "";
+  garantia.value = servicio.garantia || "No";
 
   fechaInicioGarantia.value =
     servicio.fechaInicioGarantia || "";
@@ -888,51 +1423,78 @@ function editarServicio(id) {
 
   mostrarCamposGarantia();
 
-  document.getElementById("tituloFormulario").textContent =
-    "Editar servicio";
+  document.getElementById(
+    "tituloFormulario"
+  ).textContent = "Editar servicio";
 
-  document.getElementById("btnGuardar").textContent =
-    "Guardar cambios";
+  btnGuardar.textContent = "Guardar cambios";
 
   abrirSeccion("nuevo");
 }
 
-function eliminarServicio(id) {
+/* ======================================================
+   ELIMINAR DE FIREBASE
+====================================================== */
+
+async function eliminarServicio(id) {
   const servicio = servicios.find(
-    (elemento) => elemento.id === id
+    (elemento) =>
+      elemento.id === id
   );
 
-  if (!servicio) return;
+  if (!servicio) {
+    return;
+  }
 
   const confirmar = window.confirm(
     `¿Deseas eliminar el servicio de la unidad ${servicio.economico}?`
   );
 
-  if (!confirmar) return;
+  if (!confirmar) {
+    return;
+  }
 
-  servicios = servicios.filter(
-    (elemento) => elemento.id !== id
-  );
+  try {
+    await remove(
+      ref(
+        database,
+        `mantenimientos/${id}`
+      )
+    );
 
-  guardarEnLocalStorage();
-  actualizarTodo();
-  cerrarModal();
+    cerrarModal();
 
-  mostrarNotificacion(
-    "Registro eliminado",
-    "El servicio se eliminó correctamente."
-  );
+    mostrarNotificacion(
+      "Registro eliminado",
+      "El servicio fue eliminado de Firebase."
+    );
+  } catch (error) {
+    console.error(
+      "Error al eliminar:",
+      error
+    );
+
+    mostrarNotificacion(
+      "No se pudo eliminar",
+      "Revisa tu conexión y las reglas de Firebase.",
+      "error"
+    );
+  }
 }
+
+/* ======================================================
+   LIMPIAR FORMULARIO
+====================================================== */
 
 function limpiarFormulario() {
   formServicio.reset();
   servicioId.value = "";
 
-  document.getElementById("tituloFormulario").textContent =
-    "Registrar servicio";
+  document.getElementById(
+    "tituloFormulario"
+  ).textContent = "Registrar servicio";
 
-  document.getElementById("btnGuardar").textContent =
-    "Guardar servicio";
+  btnGuardar.textContent = "Guardar servicio";
 
   seccionGarantia.classList.add("hidden");
 
@@ -943,6 +1505,10 @@ function limpiarFormulario() {
   colocarFechaActual();
 }
 
+/* ======================================================
+   NOTIFICACIONES
+====================================================== */
+
 function mostrarNotificacion(
   titulo,
   mensaje,
@@ -951,9 +1517,10 @@ function mostrarNotificacion(
   const notificacion =
     document.getElementById("notification");
 
-  const icono = notificacion.querySelector(
-    ".notification-icon"
-  );
+  const icono =
+    notificacion.querySelector(
+      ".notification-icon"
+    );
 
   document.getElementById(
     "notificationTitle"
@@ -975,25 +1542,40 @@ function mostrarNotificacion(
 
   notificacion.classList.add("show");
 
-  setTimeout(() => {
+  window.setTimeout(() => {
     notificacion.classList.remove("show");
   }, 3200);
 }
 
+/* ======================================================
+   FUNCIONES AUXILIARES
+====================================================== */
+
 function formatearFecha(fechaTexto) {
-  if (!fechaTexto) return "—";
+  if (!fechaTexto) {
+    return "—";
+  }
 
   const fecha = crearFecha(fechaTexto);
 
-  return new Intl.DateTimeFormat("es-MX", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric"
-  }).format(fecha);
+  return new Intl.DateTimeFormat(
+    "es-MX",
+    {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    }
+  ).format(fecha);
 }
 
 function crearFecha(fechaTexto) {
-  const partes = fechaTexto.split("-").map(Number);
+  if (!fechaTexto) {
+    return new Date(0);
+  }
+
+  const partes = fechaTexto
+    .split("-")
+    .map(Number);
 
   return new Date(
     partes[0],
@@ -1014,25 +1596,24 @@ function inicioDelDia(fecha) {
 }
 
 function convertirFechaInput(fecha) {
-  const año = fecha.getFullYear();
-  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-  const dia = String(fecha.getDate()).padStart(2, "0");
+  const anio = fecha.getFullYear();
 
-  return `${año}-${mes}-${dia}`;
+  const mes = String(
+    fecha.getMonth() + 1
+  ).padStart(2, "0");
+
+  const dia = String(
+    fecha.getDate()
+  ).padStart(2, "0");
+
+  return `${anio}-${mes}-${dia}`;
 }
 
 function escaparHTML(texto) {
-  const elemento = document.createElement("div");
+  const elemento =
+    document.createElement("div");
+
   elemento.textContent = texto || "";
 
   return elemento.innerHTML;
 }
-
-/*
-  Se agregan las funciones al objeto window para que
-  funcionen los botones creados dinámicamente en las tablas.
-*/
-
-window.verDetalle = verDetalle;
-window.editarServicio = editarServicio;
-window.eliminarServicio = eliminarServicio;
