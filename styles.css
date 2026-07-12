@@ -1,3 +1,8 @@
+Biblioteca
+/
+styles-responsive.css
+
+
 @import url(
   "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
 );
@@ -802,36 +807,128 @@ textarea:focus {
   display: none !important;
 }
 
+/* ======================================================
+   AJUSTES GENERALES PARA CELULAR Y TABLET
+====================================================== */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+  touch-action: manipulation;
+}
+
+.table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.economic-link {
+  padding: 0;
+  color: var(--primary);
+  background: transparent;
+  border: none;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ======================================================
+   TABLET Y LAPTOP PEQUEÑA
+====================================================== */
+
 @media (max-width: 1150px) {
   .cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .warranty-list {
     grid-template-columns: 1fr;
   }
+
+  .main-content {
+    padding: 24px;
+  }
 }
 
+/* ======================================================
+   TABLET VERTICAL Y CELULAR GRANDE
+====================================================== */
+
 @media (max-width: 850px) {
+  body {
+    min-width: 0;
+  }
+
   .sidebar {
-    position: static;
+    position: sticky;
+    top: 0;
+    left: auto;
+    z-index: 100;
     width: 100%;
     height: auto;
-    padding: 15px;
+    padding: 12px;
   }
 
   .logo {
-    padding-bottom: 15px;
+    padding: 0 4px 12px;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .logo h2 {
+    font-size: 18px;
+  }
+
+  .logo span {
+    font-size: 11px;
   }
 
   .menu {
+    width: 100%;
     flex-direction: row;
+    gap: 8px;
+    margin-top: 12px;
+    padding-bottom: 4px;
     overflow-x: auto;
-    margin-top: 15px;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .menu::-webkit-scrollbar {
+    display: none;
   }
 
   .menu-item {
+    width: auto;
     min-width: max-content;
+    flex: 0 0 auto;
+    padding: 11px 14px;
+    font-size: 13px;
+  }
+
+  .menu-item span {
+    width: auto;
+    font-size: 17px;
   }
 
   .sidebar-footer {
@@ -839,45 +936,72 @@ textarea:focus {
   }
 
   .main-content {
+    width: 100%;
     margin-left: 0;
-    padding: 20px;
+    padding: 18px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+  }
+
+  .topbar h1 {
+    font-size: 24px;
+  }
+
+  .topbar p {
+    font-size: 13px;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .summary-card {
+    min-width: 0;
+    padding: 16px;
+  }
+
+  .summary-icon {
+    min-width: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .summary-card h2 {
+    font-size: 23px;
+  }
+
+  .panel-header {
+    padding: 18px;
   }
 
   .filters {
     grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 620px) {
-  .topbar {
-    align-items: flex-start;
-    flex-direction: column;
+    padding: 15px;
   }
 
-  .topbar .primary-button {
-    width: 100%;
-  }
-
-  .cards-grid {
+  .warranty-list {
     grid-template-columns: 1fr;
+    padding: 15px;
+  }
+
+  form {
+    padding: 18px;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .input-group.full-width {
     grid-column: auto;
   }
 
-  .panel-header,
-  .history-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .btn-abrir-nuevo {
-    width: 100%;
+  .inline-fields {
+    grid-template-columns: 1fr 120px;
   }
 
   .detail-grid {
@@ -888,14 +1012,209 @@ textarea:focus {
     grid-column: auto;
   }
 
+  .modal-content {
+    max-width: 95%;
+  }
+}
+
+/* ======================================================
+   CELULAR
+====================================================== */
+
+@media (max-width: 620px) {
+  .main-content {
+    padding: 12px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .topbar h1 {
+    font-size: 21px;
+    line-height: 1.2;
+  }
+
+  .topbar p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .topbar .primary-button {
+    width: 100%;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .summary-card {
+    min-height: 82px;
+  }
+
+  .panel {
+    border-radius: 12px;
+  }
+
+  .panel-header,
+  .history-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .panel-header h2 {
+    font-size: 16px;
+  }
+
+  .panel-header p {
+    font-size: 12px;
+  }
+
+  .panel-header button,
+  .btn-abrir-nuevo {
+    width: 100%;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .cancel-button,
+  .danger-button {
+    min-height: 44px;
+    padding: 12px 15px;
+  }
+
+  input,
+  select {
+    height: 46px;
+    font-size: 16px;
+  }
+
+  textarea {
+    min-height: 100px;
+    font-size: 16px;
+  }
+
+  .inline-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+
+  .warranty-section {
+    padding: 16px;
+  }
+
+  .warranty-filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 14px;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .warranty-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .warranty-filter {
+    flex: 0 0 auto;
+  }
+
+  .warranty-card-header {
+    align-items: flex-start;
+  }
+
+  .warranty-information {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    align-items: end;
+    padding: 0;
+  }
+
+  .modal-content {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-header {
+    padding: 18px;
+  }
+
   .modal-actions {
     flex-direction: column;
+    padding: 15px;
+  }
+
+  .modal-actions button {
+    width: 100%;
   }
 
   .notification {
-    right: 15px;
-    bottom: 15px;
-    left: 15px;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
     min-width: 0;
+  }
+
+  table {
+    min-width: 850px;
+  }
+
+  th,
+  td {
+    padding: 12px;
+    white-space: nowrap;
+  }
+
+  .cell-ellipsis {
+    max-width: 170px;
+  }
+
+  .economic-link,
+  .icon-button {
+    min-height: 36px;
+  }
+}
+
+/* ======================================================
+   CELULAR MUY PEQUEÑO
+====================================================== */
+
+@media (max-width: 380px) {
+  .main-content {
+    padding: 9px;
+  }
+
+  .menu-item {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .summary-card {
+    padding: 14px;
+  }
+
+  .logo h2 {
+    font-size: 16px;
+  }
+
+  .topbar h1 {
+    font-size: 19px;
   }
 }
