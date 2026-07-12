@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
   <title>Mantenimiento de Flotilla</title>
 
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -63,7 +63,10 @@
 
       <div>
         <h1>Mantenimiento de unidades</h1>
-        <p>Control de fallas, reparaciones, refacciones y garantías.</p>
+
+        <p>
+          Control de fallas, reparaciones, refacciones y garantías.
+        </p>
       </div>
 
       <button class="primary-button" id="btnNuevoServicio">
@@ -186,7 +189,9 @@
         <div class="panel-header">
 
           <div>
-            <h2 id="tituloFormulario">Registrar servicio</h2>
+            <h2 id="tituloFormulario">
+              Registrar servicio
+            </h2>
 
             <p>
               Ingresa los datos de mantenimiento de la unidad.
@@ -197,7 +202,7 @@
 
         <form id="formServicio">
 
-          <input type="hidden" id="servicioId" />
+          <input type="hidden" id="servicioId">
 
           <div class="form-grid">
 
@@ -212,7 +217,7 @@
                 id="marca"
                 placeholder="Ejemplo: Ford, International, Kenworth"
                 required
-              />
+              >
 
             </div>
 
@@ -227,7 +232,7 @@
                 id="economico"
                 placeholder="Ejemplo: ECO-07"
                 required
-              />
+              >
 
             </div>
 
@@ -241,7 +246,7 @@
                 type="date"
                 id="fechaEntrada"
                 required
-              />
+              >
 
             </div>
 
@@ -310,7 +315,7 @@
                 id="refaccionaria"
                 placeholder="Nombre de la refaccionaria"
                 required
-              />
+              >
 
             </div>
 
@@ -321,18 +326,18 @@
               </label>
 
               <select id="garantia" required>
-
                 <option value="No">No</option>
-
                 <option value="Sí">Sí</option>
-
               </select>
 
             </div>
 
           </div>
 
-          <div class="warranty-section hidden" id="seccionGarantia">
+          <div
+            class="warranty-section hidden"
+            id="seccionGarantia"
+          >
 
             <div class="warranty-title">
 
@@ -357,7 +362,7 @@
                 <input
                   type="date"
                   id="fechaInicioGarantia"
-                />
+                >
 
               </div>
 
@@ -374,17 +379,21 @@
                     id="tiempoGarantia"
                     min="1"
                     placeholder="Ejemplo: 3"
-                  />
+                  >
 
                   <select id="unidadGarantia">
 
-                    <option value="días">Días</option>
+                    <option value="días">
+                      Días
+                    </option>
 
                     <option value="meses" selected>
                       Meses
                     </option>
 
-                    <option value="años">Años</option>
+                    <option value="años">
+                      Años
+                    </option>
 
                   </select>
 
@@ -401,7 +410,7 @@
                 <input
                   type="date"
                   id="fechaFinGarantia"
-                />
+                >
 
               </div>
 
@@ -460,13 +469,15 @@
         <div class="filters">
 
           <div class="search-box">
+
             <span>⌕</span>
 
             <input
               type="text"
               id="buscador"
               placeholder="Buscar por económico, marca, falla o refaccionaria"
-            />
+            >
+
           </div>
 
           <select id="filtroEstado">
@@ -598,7 +609,10 @@
 
         </div>
 
-        <div class="warranty-list" id="listaGarantias"></div>
+        <div
+          class="warranty-list"
+          id="listaGarantias"
+        ></div>
 
         <div class="empty-state" id="sinGarantias">
 
@@ -622,18 +636,23 @@
 
   <div class="modal hidden" id="modalDetalle">
 
-    <div class="modal-overlay" id="cerrarModalOverlay"></div>
+    <div
+      class="modal-overlay"
+      id="cerrarModalOverlay"
+    ></div>
 
     <div class="modal-content">
 
       <div class="modal-header">
 
         <div>
+
           <span class="modal-label">
             Detalle de mantenimiento
           </span>
 
           <h2 id="detalleEconomico"></h2>
+
         </div>
 
         <button class="close-button" id="cerrarModal">
@@ -642,7 +661,10 @@
 
       </div>
 
-      <div class="detail-grid" id="contenidoDetalle"></div>
+      <div
+        class="detail-grid"
+        id="contenidoDetalle"
+      ></div>
 
       <div class="modal-actions">
 
@@ -673,6 +695,7 @@
     <div class="notification-icon">✓</div>
 
     <div>
+
       <strong id="notificationTitle">
         Registro guardado
       </strong>
@@ -680,11 +703,14 @@
       <p id="notificationText">
         El servicio fue registrado correctamente.
       </p>
+
     </div>
 
   </div>
 
-  <script src="script.js"></script>
+  <!-- FIREBASE Y JAVASCRIPT SE CARGAN AQUÍ -->
+
+  <script type="module" src="script.js"></script>
 
 </body>
 </html>
