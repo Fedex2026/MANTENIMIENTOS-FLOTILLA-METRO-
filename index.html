@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>Mantenimiento de Flotilla</title>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      <div class="logo-icon">🚛</div>
+
+      <div>
+        <h2>METRO</h2>
+        <span>Mantenimiento</span>
+      </div>
+    </div>
+
+    <nav class="menu">
+
+      <button class="menu-item active" data-section="inicio">
+        <span>▦</span>
+        Inicio
+      </button>
+
+      <button class="menu-item" data-section="nuevo">
+        <span>＋</span>
+        Nuevo servicio
+      </button>
+
+      <button class="menu-item" data-section="historial">
+        <span>☷</span>
+        Historial
+      </button>
+
+      <button class="menu-item" data-section="garantias">
+        <span>✓</span>
+        Garantías
+      </button>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>Sistema interno</p>
+      <strong>Grúas Metropolitanas</strong>
+    </div>
+
+  </aside>
+
+  <main class="main-content">
+
+    <header class="topbar">
+
+      <div>
+        <h1>Mantenimiento de unidades</h1>
+        <p>Control de fallas, reparaciones, refacciones y garantías.</p>
+      </div>
+
+      <button class="primary-button" id="btnNuevoServicio">
+        + Registrar servicio
+      </button>
+
+    </header>
+
+    <!-- INICIO -->
+
+    <section class="page-section active-section" id="inicio">
+
+      <div class="cards-grid">
+
+        <article class="summary-card">
+
+          <div class="summary-icon blue">🚛</div>
+
+          <div>
+            <span>Servicios registrados</span>
+            <h2 id="totalServicios">0</h2>
+          </div>
+
+        </article>
+
+        <article class="summary-card">
+
+          <div class="summary-icon orange">🔧</div>
+
+          <div>
+            <span>En reparación</span>
+            <h2 id="totalReparacion">0</h2>
+          </div>
+
+        </article>
+
+        <article class="summary-card">
+
+          <div class="summary-icon green">✓</div>
+
+          <div>
+            <span>Con garantía</span>
+            <h2 id="totalGarantias">0</h2>
+          </div>
+
+        </article>
+
+        <article class="summary-card">
+
+          <div class="summary-icon red">!</div>
+
+          <div>
+            <span>Garantías vencidas</span>
+            <h2 id="garantiasVencidas">0</h2>
+          </div>
+
+        </article>
+
+      </div>
+
+      <div class="panel">
+
+        <div class="panel-header">
+
+          <div>
+            <h2>Servicios recientes</h2>
+            <p>Últimos mantenimientos registrados.</p>
+          </div>
+
+          <button class="secondary-button" id="btnVerHistorial">
+            Ver historial
+          </button>
+
+        </div>
+
+        <div class="table-container">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Económico</th>
+                <th>Marca</th>
+                <th>Falla</th>
+                <th>Refaccionaria</th>
+                <th>Garantía</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaRecientes"></tbody>
+
+          </table>
+
+          <div class="empty-state" id="sinRecientes">
+
+            <div class="empty-icon">🔧</div>
+
+            <h3>No hay servicios registrados</h3>
+
+            <p>
+              Registra el primer mantenimiento de una unidad.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- NUEVO SERVICIO -->
+
+    <section class="page-section" id="nuevo">
+
+      <div class="panel form-panel">
+
+        <div class="panel-header">
+
+          <div>
+            <h2 id="tituloFormulario">Registrar servicio</h2>
+
+            <p>
+              Ingresa los datos de mantenimiento de la unidad.
+            </p>
+          </div>
+
+        </div>
+
+        <form id="formServicio">
+
+          <input type="hidden" id="servicioId" />
+
+          <div class="form-grid">
+
+            <div class="input-group">
+
+              <label for="marca">
+                Marca de la unidad
+              </label>
+
+              <input
+                type="text"
+                id="marca"
+                placeholder="Ejemplo: Ford, International, Kenworth"
+                required
+              />
+
+            </div>
+
+            <div class="input-group">
+
+              <label for="economico">
+                Número económico
+              </label>
+
+              <input
+                type="text"
+                id="economico"
+                placeholder="Ejemplo: ECO-07"
+                required
+              />
+
+            </div>
+
+            <div class="input-group">
+
+              <label for="fechaEntrada">
+                Fecha de entrada
+              </label>
+
+              <input
+                type="date"
+                id="fechaEntrada"
+                required
+              />
+
+            </div>
+
+            <div class="input-group">
+
+              <label for="estado">
+                Estado del servicio
+              </label>
+
+              <select id="estado" required>
+
+                <option value="En reparación">
+                  En reparación
+                </option>
+
+                <option value="Terminado">
+                  Terminado
+                </option>
+
+                <option value="Pendiente">
+                  Pendiente
+                </option>
+
+              </select>
+
+            </div>
+
+            <div class="input-group full-width">
+
+              <label for="falla">
+                Falla presentada
+              </label>
+
+              <textarea
+                id="falla"
+                rows="3"
+                placeholder="Describe la falla de la unidad"
+                required
+              ></textarea>
+
+            </div>
+
+            <div class="input-group full-width">
+
+              <label for="refacciones">
+                Refacciones utilizadas
+              </label>
+
+              <textarea
+                id="refacciones"
+                rows="3"
+                placeholder="Ejemplo: balatas, aceite, filtro, manguera hidráulica"
+                required
+              ></textarea>
+
+            </div>
+
+            <div class="input-group">
+
+              <label for="refaccionaria">
+                Refaccionaria o proveedor
+              </label>
+
+              <input
+                type="text"
+                id="refaccionaria"
+                placeholder="Nombre de la refaccionaria"
+                required
+              />
+
+            </div>
+
+            <div class="input-group">
+
+              <label for="garantia">
+                ¿Tiene garantía?
+              </label>
+
+              <select id="garantia" required>
+
+                <option value="No">No</option>
+
+                <option value="Sí">Sí</option>
+
+              </select>
+
+            </div>
+
+          </div>
+
+          <div class="warranty-section hidden" id="seccionGarantia">
+
+            <div class="warranty-title">
+
+              <div>
+                <h3>Información de garantía</h3>
+
+                <p>
+                  Ingresa la vigencia de la refacción o reparación.
+                </p>
+              </div>
+
+            </div>
+
+            <div class="form-grid">
+
+              <div class="input-group">
+
+                <label for="fechaInicioGarantia">
+                  Inicio de garantía
+                </label>
+
+                <input
+                  type="date"
+                  id="fechaInicioGarantia"
+                />
+
+              </div>
+
+              <div class="input-group">
+
+                <label for="tiempoGarantia">
+                  Tiempo de garantía
+                </label>
+
+                <div class="inline-fields">
+
+                  <input
+                    type="number"
+                    id="tiempoGarantia"
+                    min="1"
+                    placeholder="Ejemplo: 3"
+                  />
+
+                  <select id="unidadGarantia">
+
+                    <option value="días">Días</option>
+
+                    <option value="meses" selected>
+                      Meses
+                    </option>
+
+                    <option value="años">Años</option>
+
+                  </select>
+
+                </div>
+
+              </div>
+
+              <div class="input-group">
+
+                <label for="fechaFinGarantia">
+                  Vencimiento de garantía
+                </label>
+
+                <input
+                  type="date"
+                  id="fechaFinGarantia"
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="cancel-button"
+              id="btnCancelar"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              id="btnGuardar"
+            >
+              Guardar servicio
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </section>
+
+    <!-- HISTORIAL -->
+
+    <section class="page-section" id="historial">
+
+      <div class="panel">
+
+        <div class="panel-header history-header">
+
+          <div>
+            <h2>Historial de servicios</h2>
+
+            <p>
+              Consulta, modifica o elimina los registros.
+            </p>
+          </div>
+
+          <button class="primary-button btn-abrir-nuevo">
+            + Nuevo servicio
+          </button>
+
+        </div>
+
+        <div class="filters">
+
+          <div class="search-box">
+            <span>⌕</span>
+
+            <input
+              type="text"
+              id="buscador"
+              placeholder="Buscar por económico, marca, falla o refaccionaria"
+            />
+          </div>
+
+          <select id="filtroEstado">
+
+            <option value="">
+              Todos los estados
+            </option>
+
+            <option value="En reparación">
+              En reparación
+            </option>
+
+            <option value="Terminado">
+              Terminado
+            </option>
+
+            <option value="Pendiente">
+              Pendiente
+            </option>
+
+          </select>
+
+          <select id="filtroGarantia">
+
+            <option value="">
+              Todas las garantías
+            </option>
+
+            <option value="Sí">
+              Con garantía
+            </option>
+
+            <option value="No">
+              Sin garantía
+            </option>
+
+          </select>
+
+        </div>
+
+        <div class="table-container">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Económico</th>
+                <th>Marca</th>
+                <th>Falla</th>
+                <th>Refacciones</th>
+                <th>Refaccionaria</th>
+                <th>Garantía</th>
+                <th>Vencimiento</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody id="tablaHistorial"></tbody>
+
+          </table>
+
+          <div class="empty-state" id="sinHistorial">
+
+            <div class="empty-icon">📋</div>
+
+            <h3>No se encontraron servicios</h3>
+
+            <p>
+              Prueba cambiando los filtros o registra un servicio.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- GARANTÍAS -->
+
+    <section class="page-section" id="garantias">
+
+      <div class="panel">
+
+        <div class="panel-header">
+
+          <div>
+            <h2>Control de garantías</h2>
+
+            <p>
+              Consulta las garantías vigentes, próximas a vencer y vencidas.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="warranty-filters">
+
+          <button
+            class="warranty-filter active"
+            data-warranty-filter="todas"
+          >
+            Todas
+          </button>
+
+          <button
+            class="warranty-filter"
+            data-warranty-filter="vigente"
+          >
+            Vigentes
+          </button>
+
+          <button
+            class="warranty-filter"
+            data-warranty-filter="por-vencer"
+          >
+            Por vencer
+          </button>
+
+          <button
+            class="warranty-filter"
+            data-warranty-filter="vencida"
+          >
+            Vencidas
+          </button>
+
+        </div>
+
+        <div class="warranty-list" id="listaGarantias"></div>
+
+        <div class="empty-state" id="sinGarantias">
+
+          <div class="empty-icon">✓</div>
+
+          <h3>No hay garantías registradas</h3>
+
+          <p>
+            Los servicios con garantía aparecerán en esta sección.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- MODAL DETALLE -->
+
+  <div class="modal hidden" id="modalDetalle">
+
+    <div class="modal-overlay" id="cerrarModalOverlay"></div>
+
+    <div class="modal-content">
+
+      <div class="modal-header">
+
+        <div>
+          <span class="modal-label">
+            Detalle de mantenimiento
+          </span>
+
+          <h2 id="detalleEconomico"></h2>
+        </div>
+
+        <button class="close-button" id="cerrarModal">
+          ×
+        </button>
+
+      </div>
+
+      <div class="detail-grid" id="contenidoDetalle"></div>
+
+      <div class="modal-actions">
+
+        <button
+          class="secondary-button"
+          id="btnEditarDetalle"
+        >
+          Editar registro
+        </button>
+
+        <button
+          class="danger-button"
+          id="btnEliminarDetalle"
+        >
+          Eliminar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- NOTIFICACIÓN -->
+
+  <div class="notification" id="notification">
+
+    <div class="notification-icon">✓</div>
+
+    <div>
+      <strong id="notificationTitle">
+        Registro guardado
+      </strong>
+
+      <p id="notificationText">
+        El servicio fue registrado correctamente.
+      </p>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>
